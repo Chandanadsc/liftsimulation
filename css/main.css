@@ -181,6 +181,7 @@ button:hover {
 }
 
 .lifts {
+  margin-top: 20px;
   display: flex;
   flex-direction: row;
   min-width: 100%;
@@ -189,6 +190,7 @@ button:hover {
 }
 
 .lift {
+  margin-top: 20px;
   position: relative;
   width: 60px;
   height: 100px;
