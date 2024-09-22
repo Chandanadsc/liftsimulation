@@ -1,0 +1,91 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.building {
+  display: flex;
+  height: 80vh;
+  border: 2px solid #444;
+  position: relative;
+}
+
+.floors {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 200px;
+  border-right: 2px solid #444;
+}
+
+.floor {
+  flex: 1;
+  border-bottom: 1px solid #444;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+
+  position: relative;
+}
+
+.floor-label {
+  position: absolute;
+  left: 10px;
+}
+
+.buttons {
+  position: absolute;
+  right: 10px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.btn {
+  margin: 2px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-up {
+  background-color: #4caf50;
+}
+
+.btn-down {
+  background-color: #f1c40f;
+}
+
+.lifts {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 0 20px;
+}
+
+.lift {
+  width: 50px;
+  height: 60px;
+  background-color: #3498db;
+  border: 2px solid #2980b9;
+  transition: transform 0.5s ease-in-out;
+}
+
+/* First floor special case */
+.floor:first-child .buttons {
+  flex-direction: column-reverse;
+}
+
+.floor:first-child .btn-down {
+  display: none;
+}
+
+/* Top floor special case */
+.floor:last-child .btn-up {
+  display: none;
+}
