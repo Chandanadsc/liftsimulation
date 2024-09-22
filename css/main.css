@@ -6,6 +6,9 @@
   --input-border: #bdc3c7;
   --button-hover: #2574a9;
 }
+/* #liftsimulation {
+  display: none;
+} */
 
 body {
   font-family: "Arial", sans-serif;
@@ -15,18 +18,11 @@ body {
   height: 100vh;
   margin: 0;
   background-color: rgba(97, 154, 210, 0.717);
+
+  background-position: center;
+
   color: var(--text-color);
 }
-/* 
-.building {
-  display: flex;
-  align-items: center;
-  position: absolute;
-  margin: 20px;
-  background-color: rgb(135, 233, 250);
-  width: auto;
-  margin-top: 60px;
-} */
 
 .container {
   background-color: rgba(0, 0, 0, 0.7);
@@ -36,7 +32,6 @@ body {
   width: 100%;
   max-width: 400px;
   height: auto;
-  background-color: rgb(135, 233, 250);
 }
 
 h1 {
@@ -81,18 +76,20 @@ button {
   transition: background-color 0.3s ease;
   width: 50%;
 }
-
 .buttondiv {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 button:hover {
   cursor: pointer;
   background-color: var(--button-hover);
 }
+/* .container {
+  display: none;
+} */
 
+/* for lift_simulation */
 .top-buttons {
   position: fixed;
   top: 0;
@@ -105,13 +102,19 @@ button:hover {
   gap: 10px;
   z-index: 1000;
 }
-
+.building {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  margin: 20px;
+  background-color: rgb(135, 233, 250);
+  width: auto;
+}
 #liftsimulation {
   display: flex;
   flex-direction: column;
   max-width: 90vw;
 }
-
 .floors {
   height: 180px;
   margin-right: 25px;
@@ -130,7 +133,6 @@ button:hover {
   border-top: 4px solid black;
   margin: 0 10px;
 }
-
 .upbutton,
 .downbutton {
   display: flex;
@@ -144,16 +146,14 @@ button:hover {
   margin-top: 5px;
   border-radius: 25px;
   color: #ffffff;
+  /* background-color: #05273e; */
 }
-
 .upbutton {
   background-color: #05273e;
 }
-
 .downbutton {
   background-color: #39607c;
 }
-
 .upbutton:hover {
   cursor: pointer;
   background-color: #020e17;
@@ -162,6 +162,12 @@ button:hover {
 .downbutton:hover {
   cursor: pointer;
   background-color: rgb(39, 147, 230);
+}
+.upbutton:active {
+  background-color: #373a3b;
+}
+.downbutton:active {
+  background-color: rgb(68, 121, 161);
 }
 
 .floornumber {
@@ -181,21 +187,21 @@ button:hover {
 }
 
 .lifts {
-  margin-top: 20px;
   display: flex;
   flex-direction: row;
   min-width: 100%;
   margin-top: -70px;
   margin-left: 90px;
 }
-
 .lift {
-  margin-top: 20px;
+  margin-top: 10px;
   position: relative;
   width: 60px;
   height: 100px;
   border: 2px solid #333;
+
   margin-left: 25px;
+  margin-top: 15px;
   min-width: 70px;
   height: 100px;
   background-color: #f0d9d9a8;
@@ -205,35 +211,34 @@ button:hover {
   width: 70px;
   height: 100px;
   position: absolute;
+
   background-color: #131718;
+  width: 100%;
+
+  height: 100%;
   display: flex;
   justify-content: space-between;
   overflow: hidden;
-  transition: transform 2s ease-in-out;
 }
-
 .left-door,
 .right-door {
   background-color: #333;
   height: 100%;
   width: 50%;
-  transition: transform 2s ease-in-out; /* Ensure smooth transitions */
+  transition: transform 2s ease-in-out;
+  /* margin-left: 25px; */
 }
-
 .left-door {
   transform: translateX(0);
 }
-
 .right-door {
   transform: translateX(0);
 }
-
 .door.open .left-door {
-  transform: translateX(-100%); /* Move left door to the left */
+  transform: translateX(-100%);
 }
-
-.door.open .right-door {
-  transform: translateX(100%); /* Move right door to the right */
+.door .open .right-door {
+  transform: translateX(100%);
 }
 
 .buttons-wrapper {
@@ -242,7 +247,6 @@ button:hover {
   justify-content: space-around;
   width: 30px;
 }
-
 #resetButton {
   width: 100px;
   padding: 10px 20px;
@@ -253,7 +257,6 @@ button:hover {
   background-color: #333;
   color: #bdc3c7;
 }
-
 #resetButton:hover {
   cursor: pointer;
   background-color: #000000;
@@ -261,6 +264,7 @@ button:hover {
 
 #backButton {
   width: 100px;
+
   padding: 10px 20px;
   font-size: 16px;
   display: flex;
@@ -273,14 +277,4 @@ button:hover {
 #backButton:hover {
   cursor: pointer;
   background-color: #682121;
-}
-
-.building {
-  display: flex;
-  align-items: center;
-  position: absolute;
-  margin: 20px;
-  background-color: rgb(135, 233, 250);
-  width: auto;
-  margin-top: 60px;
 }
