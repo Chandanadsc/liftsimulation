@@ -19,8 +19,6 @@ document.getElementById("setupForm").addEventListener("submit", function (e) {
   }
 
   // Reset buttons
-
-  // Generate building
   document.getElementById("resetButton").style.display = "block";
   document.getElementById("backButton").style.display = "block";
   generateBuilding(numFloors, numLifts);
@@ -37,6 +35,8 @@ document.getElementById("backButton").addEventListener("click", () => {
 });
 
 let occupiedFloors; // Declare occupiedFloors variable
+let globalRequestQueue = []; // Global queue for lift requests
+let activeLiftsOnFloor = {}; // Track how many lifts are serving each floor
 
 function resetLifts() {
   const lifts = document.querySelectorAll(".lift");
@@ -48,6 +48,8 @@ function resetLifts() {
 
   // Reset occupied floors
   occupiedFloors.fill(false); // Reset occupied floors array
+  globalRequestQueue = []; // Clear the global request queue
+  activeLiftsOnFloor = {}; // Clear active lift counters for each floor
 }
 
 function generateBuilding(floors, lifts) {
@@ -56,6 +58,7 @@ function generateBuilding(floors, lifts) {
   liftSimulation.innerHTML = "";
   occupiedFloors = Array(floors).fill(false); // Initialize occupied floors
   let liftQueues = Array.from({ length: lifts }, () => []); // Queues for each lift
+  activeLiftsOnFloor = {}; // Initialize lifts serving each floor
 
   // Generate Floors
   for (let i = floors - 1; i >= 0; i--) {
@@ -76,9 +79,8 @@ function generateBuilding(floors, lifts) {
       const upButton = document.createElement("div");
       upButton.classList.add("upbutton");
       upButton.innerText = "Up";
-      upButton.addEventListener("click", () =>
-        callLift(i, "up", liftQueues, occupiedFloors)
-      );
+      upButton.addEventListener("click", () => queueLiftRequest(i, "up"));
+
       buttonsWrapper.appendChild(upButton);
     }
 
@@ -86,9 +88,8 @@ function generateBuilding(floors, lifts) {
       const downButton = document.createElement("div");
       downButton.classList.add("downbutton");
       downButton.innerText = "Down";
-      downButton.addEventListener("click", () =>
-        callLift(i, "down", liftQueues, occupiedFloors)
-      );
+      downButton.addEventListener("click", () => queueLiftRequest(i, "down"));
+
       buttonsWrapper.appendChild(downButton);
     }
 
@@ -117,6 +118,7 @@ function generateBuilding(floors, lifts) {
         liftDoor.appendChild(rightDoor);
         lift.appendChild(liftDoor);
         liftWrapper.appendChild(lift);
+        console.log(j);
       }
 
       floorDiv.appendChild(liftWrapper);
@@ -126,36 +128,50 @@ function generateBuilding(floors, lifts) {
   }
 }
 
-// Move the lift to the floor where the button was pressed
-function callLift(floor, direction, liftQueues, occupiedFloors) {
+// Queue the lift request into the global queue
+function queueLiftRequest(floor, direction) {
+  if (!activeLiftsOnFloor[floor]) {
+    activeLiftsOnFloor[floor] = { up: 0, down: 0 }; // Initialize floor's lift tracking
+  }
+
+  // Only queue the request if less than 2 lifts are serving the floor
+  if (activeLiftsOnFloor[floor][direction] < 1) {
+    globalRequestQueue.push({ floor, direction });
+    // console.log("floor")
+    processGlobalQueue(); // Attempt to process the queue whenever a request is added
+  } else {
+    console.log(
+      `Maximum lifts already serving Floor ${floor} for ${direction} direction.`
+    );
+  }
+}
+
+// Process the global queue if any lifts are free
+function processGlobalQueue() {
   const lifts = document.querySelectorAll(".lift");
   const liftPositions = Array.from(lifts).map(
     (lift) => parseInt(lift.dataset.floor) || 0
   );
 
-  // If a lift is already at the requested floor, ignore the call
-  if (occupiedFloors[floor]) {
-    console.log(`A lift is already at floor ${floor}. Ignoring request.`);
-    return;
-  }
+  globalRequestQueue = globalRequestQueue.filter((request) => {
+    const nearestLift = findNearestLift(
+      request.floor,
+      request.direction,
+      liftPositions,
+      lifts
+    );
 
-  // Queue the request for the relevant lift
-  let nearestLift = findNearestLift(
-    floor,
-    direction,
-    liftPositions,
-    lifts,
-    liftQueues
-  );
+    if (nearestLift !== null) {
+      callLift(request.floor, request.direction, nearestLift); // Call lift for the request
+      return false; // Remove this request from the queue as it's being processed
+    }
 
-  if (nearestLift !== null) {
-    liftQueues[nearestLift].push(floor); // Add request to the lift's queue
-    processLiftQueue(nearestLift, liftQueues, occupiedFloors);
-  }
+    return true; // Keep the request in the queue if no lifts are available
+  });
 }
 
-// Find the nearest lift to serve the request
-function findNearestLift(floor, direction, liftPositions, lifts, liftQueues) {
+// Find the nearest available lift to serve the request
+function findNearestLift(floor, direction, liftPositions, lifts) {
   let nearestLift = null;
   let minDistance = Infinity;
 
@@ -163,77 +179,55 @@ function findNearestLift(floor, direction, liftPositions, lifts, liftQueues) {
     const distance = Math.abs(pos - floor);
     const isMoving = lifts[i].classList.contains("moving");
 
-    // If the lift is moving and there's a queue, only consider it in the same direction
-    const isGoingInTheSameDirection =
-      (direction === "up" && pos <= floor) ||
-      (direction === "down" && pos >= floor);
-
-    // If the lift is not moving, or it's in the queue and we're considering a closer lift
-    if (!isMoving || liftQueues[i].length > 0) {
-      // Prioritize lifts that are going in the same direction
-      if (isGoingInTheSameDirection && distance < minDistance) {
-        minDistance = distance;
-        nearestLift = i;
-      }
-      // Allow lifts to respond regardless of direction if they are closer
-      else if (!isGoingInTheSameDirection && distance < minDistance) {
-        minDistance = distance;
-        nearestLift = i;
-      }
+    if (!isMoving && distance < minDistance) {
+      minDistance = distance;
+      nearestLift = i;
     }
   });
 
   return nearestLift;
 }
 
-// Process the queue for the specified lift
-function processLiftQueue(liftIndex, liftQueues, occupiedFloors) {
-  if (liftQueues[liftIndex].length === 0) return; // No requests to process
-
-  const targetFloor = liftQueues[liftIndex].shift(); // Get the next request
-  moveLift(liftIndex, targetFloor, occupiedFloors);
-}
-
-// Move the nearest lift to the desired floor
-function moveLift(liftIndex, targetFloor, occupiedFloors) {
-  const lift = document.getElementById(`lift${liftIndex}`);
+// Move the lift to the floor where the button was pressed
+function callLift(floor, direction, liftIndex) {
+  const lifts = document.querySelectorAll(".lift");
+  const lift = lifts[liftIndex];
   const currentFloor = parseInt(lift.dataset.floor) || 0;
-  const floorDiff = Math.abs(currentFloor - targetFloor);
+  const floorDiff = Math.abs(currentFloor - floor);
   const timeToMove = floorDiff * 2000; // 2 seconds per floor
 
   lift.classList.add("moving");
   lift.style.transition = `transform ${timeToMove / 1000}s linear`;
-  lift.style.transform = `translateY(-${targetFloor * 180}px)`;
+  lift.style.transform = `translateY(-${floor * 180}px)`;
 
-  // Lock the floor as soon as the lift starts moving
-  occupiedFloors[targetFloor] = true;
+  // Increment the counter for lifts serving this floor
+  activeLiftsOnFloor[floor][direction]++;
+  occupiedFloors[floor] = true; // Lock the floor as soon as the lift starts moving
 
   setTimeout(() => {
-    lift.dataset.floor = targetFloor; // Update current floor
+    lift.dataset.floor = floor; // Update current floor
     openCloseDoors(lift);
   }, timeToMove);
 
   setTimeout(() => {
     lift.classList.remove("moving");
-    occupiedFloors[targetFloor] = false; // Mark the floor as unoccupied after the doors close
-    processLiftQueue(liftIndex, liftQueues, occupiedFloors); // Process the next request in the queue
-  }, timeToMove + 2000); // Door open/close time
+    occupiedFloors[floor] = false; // Mark the floor as unoccupied after the doors close
+
+    // Decrement the counter when the lift finishes serving the floor
+    activeLiftsOnFloor[floor][direction]--;
+    processGlobalQueue(); // After lift is free, check the global queue
+  }, timeToMove + 2500); // Include door open/close time
 }
 
 // Simulate the opening and closing of lift doors
 function openCloseDoors(lift) {
   const doors = lift.querySelector(".door");
-  // const rightDoor = doors.querySelector(".right-door");
 
   // Open doors
-  // doors.style.width = "0";
-  // rightDoor.style.marginLeft = "0";
   doors.classList.add("open");
 
   setTimeout(() => {
     // Close doors after 2 seconds
-    // doors.style.width = "35px";
-    // rightDoor.style.marginLeft = "25px";
     doors.classList.remove("open");
-  }, 2000);
+  }, 2500);
 }
