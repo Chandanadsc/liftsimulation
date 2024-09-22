@@ -109,6 +109,7 @@ button:hover {
   margin: 20px;
   background-color: rgb(135, 233, 250);
   width: auto;
+  margin-top: 60px;
 }
 #liftsimulation {
   display: flex;
@@ -194,7 +195,6 @@ button:hover {
   margin-left: 90px;
 }
 .lift {
-  margin-top: 10px;
   position: relative;
   width: 60px;
   height: 100px;
@@ -213,12 +213,13 @@ button:hover {
   position: absolute;
 
   background-color: #131718;
-  width: 100%;
+  /* width: 100%;
 
-  height: 100%;
+  height: 100%; */
   display: flex;
   justify-content: space-between;
   overflow: hidden;
+  transition: transform 2s ease-in-out;
 }
 .left-door,
 .right-door {
@@ -237,7 +238,7 @@ button:hover {
 .door.open .left-door {
   transform: translateX(-100%);
 }
-.door .open .right-door {
+.door.open .right-door {
   transform: translateX(100%);
 }
 
@@ -277,4 +278,7 @@ button:hover {
 #backButton:hover {
   cursor: pointer;
   background-color: #682121;
+}
+.building {
+  margin-top: 60px;
 }
